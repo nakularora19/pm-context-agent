@@ -1,59 +1,32 @@
-# pm-profile.md
-> Load this file at the start of every session. This is the persistent context that replaces re-introduction.
+# PM profile
 
----
+> Fill this in only in your private working copy. Load at the start of every session.
 
 ## Who I am
 
-I'm a product manager energized by hard problems. My instinct is to break complexity down into a clear set of actions and layers that all point toward the same goal or KPI. I care about strategy as much as execution: I want to understand how each piece of work connects to the larger picture, and I get genuine satisfaction from seeing product decisions validated through data.
+I'm [role] for [team or product area].
 
-I'm also someone who invests in getting stakeholders excited about a vision, not just informed about a roadmap.
+[What energizes me, how I approach problems, and what I care about beyond execution.]
 
-Where I'm still growing: narrative-building across stakeholder groups (especially making the "why" land for non-product audiences), and patience during slow implementation cycles or when context needs to be re-explained multiple times.
-
----
+Where I'm still growing: [areas where I want support].
 
 ## How I work with AI
 
-My working style is task-dependent. Don't assume the same mode for every request.
-
-### Explore mode
-When I'm working through a problem or strategy, I want pushback, critique, and brainstorming first. Not a draft. Go beyond the surface. Ask the uncomfortable question. Help me pressure-test before we produce anything.
-
-### Research mode
-Go deep and come back with specifics: data points, competitor signals, market context. Always state explicitly what source or data you're basing findings on. Do not summarize from general knowledge without flagging that's what you're doing.
-
-### Draft mode: sectioned
-For structured outputs (PRDs, opportunity scopes, analysis writeups): draft one or two sections at a time. I will validate and edit before we continue. Do not get ahead of me.
-
-### Draft mode: full
-For transactional outputs (tickets, Slack messages, wiki updates): draft the whole thing in one pass. I'll edit once.
-
-### Critique mode
-When I share a draft or a plan, find the weaknesses before I do. Look for gaps in logic, missing perspectives, weak assumptions, and anything that would get challenged in a review. Be direct. Don't soften feedback to be polite.
-
----
+- **Explore:** push back, brainstorm, and ask the uncomfortable question before drafting.
+- **Research:** investigate deeply, cite sources, and label inference or general knowledge.
+- **Draft: sectioned:** one or two sections at a time for strategy, roadmaps, scoping, and PRDs; wait for review.
+- **Draft: full:** complete experiment readouts, tickets, Slack drafts, and notes in one pass.
+- **Critique:** identify weaknesses directly.
 
 ## Output standards
 
-**Be concise.** Long and verbose is a failure, not a safe default. If you're unsure whether to include something, leave it out.
+- Be concise. [Preferred length or audience-specific limits.]
+- Avoid executive summaries unless requested or required by the workflow, filler, passive voice, and repeating my request.
+- Give a recommendation when I ask for one.
+- Add next steps only when requested or required by the output format.
+- Cite grounding for research and data claims.
+- Use clear headers and lists; match the audience and destination.
+- Flag context drift in long threads.
+- [Additional preferences.]
 
-**Flag context drift.** In long discussion threads, context degrades. If you sense the conversation has drifted from the original question or goal, say so explicitly and suggest starting a fresh session rather than trying to correct mid-thread.
-
-**Cite your grounding.** For any research or data-based output, explicitly state what you're basing it on. If it's general training knowledge, say that. If it's a document I've uploaded, reference it.
-
-**Match the audience.** Every output has a reader. Default to asking if it's not clear. A wiki page, a Slack message, and a stakeholder update on the same topic need completely different treatments.
-
----
-
-## Context architecture
-
-This repo is organized in layers. Load them in this order for any task:
-
-1. `pm-profile.md` — this file. Who I am and how I work.
-2. `context/current-quarter.md` — current KPIs, priorities, and active projects.
-3. Relevant `skills/*.md` — task-specific methodology and output formats.
-4. Relevant `projects/*.md` — per-project scoping doc for nuance and specifics.
-
-If a layer is missing or not provided, ask before assuming.
-
+Canonical context loading, routing, and source-of-truth rules live in `AGENTS.md`.

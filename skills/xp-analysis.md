@@ -1,194 +1,190 @@
-# skills/xp-analysis.md
-
-> Context dependencies: Load `pm-profile.md` and `context/current-quarter.md` before running this skill. KPIs, supporting metrics, and active project names are defined there. Do not hardcode them here.
-
-> Runtime inputs required: (1) experiment data file or screenshot from AB console, (2) relevant project scoping doc from `projects/`.
-
+---
+name: xp-analysis
+description: Analyze a concluded A/B experiment using platform results and a project scoping document, producing a detailed analysis, plain-language summary, and outcome-specific Slack draft.
 ---
 
-## Purpose
+# XP Analysis
 
-This skill runs a complete experiment analysis and produces three audience-specific outputs from a single input. The goal is to eliminate repetitive formatting work and ensure consistent, high-quality readouts across every channel.
+## When to use this skill
 
----
+Use for a concluded A/B experiment when the PM provides:
 
-## How to invoke this skill
+- Experiment platform results: readable screenshots or an equivalent export showing the recommendation, metric results, and available uncertainty estimates.
+- A project context or scoping document explaining what was tested and why.
 
-State the following at the start of your session after loading context:
+If either input is missing or unreadable, ask for it before forming a conclusion. Do not guess at metrics or context.
 
-> "Run XP analysis. Inputs: [data file or screenshot filename] and [project scoping doc filename]."
+Follow `AGENTS.md` for context loading and source ownership. Read the linked project document live, or request its relevant content if access is unavailable. Use `context/current-quarter.md` for configured KPIs, guardrails, constraints, and decision owners. Flag conflicts with the experiment configuration rather than silently choosing metrics.
 
-The agent will confirm it has loaded `current-quarter.md` and the project scoping doc before proceeding.
+## What to do
 
----
+### 1. Read the platform's top-level assessment
 
-## Analytical methodology
+Extract experiment status, traffic allocation, recommendation, and explanation before interpreting metrics. Preserve the platform's labels and explain them in plain language. Distinguish operational status, analytical recommendation, and the team's actual decision; none establishes the others.
 
-Work through these steps in order. Do not skip steps or combine them.
+If a field is unavailable, say so. Do not infer rollout status from a recommendation.
 
-**Step 1: Extract the data**
+### 2. Identify the primary metric
 
-Before extracting anything, read the project scoping doc and identify:
+Identify the metric explicitly designated as primary for this run. Report its name, relative percentage difference, and the platform's status or significance label. Include the confidence level when supplied. One line per primary metric is usually enough; do not transcribe the entire platform table.
 
-- Primary metrics: the metrics this experiment is designed to move
-- Guardrail metrics: the metrics that must not regress
-- Counter-metrics: any secondary metrics being monitored for unintended effects
-- Segmentation cuts: any specific user segments called out in the scoping doc (for example mobile vs. desktop, new vs. returning). If segmentation is specified, run the analysis for each segment separately in addition to the overall result.
+Use these default terms throughout the analysis:
 
-Then, for each identified metric, extract and report for each variant vs. control:
+- **Primary metric:** The outcome the experiment aims to improve.
+- **Guardrail metrics:** Outcomes that must not worsen beyond agreed limits.
+- **Secondary metrics:** Supporting signals that help explain the result.
 
-- Absolute value for variant and control
-- Percentage difference vs. control
-- Statistical significance: state the confidence level explicitly. If not available in the data, say so. Do not imply significance where it has not been confirmed.
+If the platform uses labels such as “Hypothesis Metric” or “Overall Evaluation Criterion” (OEC), establish their configured meaning and map them to the appropriate metric role. OEC is not automatically a guardrail or a separate metric. Preserve the source label in parentheses only when it helps readers reconcile the analysis with the platform. Do not count a metric appearing in multiple tables as independent evidence.
 
-If the scoping doc does not specify metrics clearly, stop and ask before proceeding. Do not infer which metrics to analyze.
+If primary metrics are unclear or conflict with the scoping document, resolve the ambiguity before recommending an outcome.
 
-**Step 2: Evaluate against current quarter metrics**
+### 3. Evaluate guardrail and secondary metrics
 
-Cross-reference the extracted data against the supporting metrics table in `current-quarter.md`. For each metric in that table that is affected by this experiment, state explicitly whether the result is positive, negative, neutral, or inconclusive. Flag any guardrail metrics that moved negatively, even if the movement is within noise.
+For each configured guardrail, report its metric name, agreed limit, relative or absolute difference as appropriate, and status against the configured decision rule. Mark missing limits or results as unavailable.
 
-**Step 3: Summarize the experiment context**
+Report relevant secondary metrics with their direction, magnitude, and uncertainty. Use them to explain the result; do not promote a favorable secondary metric to the primary success criterion after seeing the data.
 
-From the project scoping doc, extract and summarize:
+An inconclusive result means the available evidence does not establish the tested effect. It does not prove equivalence, no harm, or a cleaner experience without trade-offs. Claim a guardrail passed only when the configured decision rule supports that conclusion.
 
-- Problem statement and opportunity
-- Solution tested: UX change, messaging change, feature change, or model change
-- Experiment audience: percentage of users and any segmentation applied
-- Hypothesis that was being tested
+Cross-check relevant supporting metrics from quarterly context. Flag negative guardrail movements even when not significant, while distinguishing an observed movement from a confirmed regression or breached threshold. Mark unmeasured guardrails as unavailable.
 
-**Step 4: Form a recommendation**
+### 4. Call out key business metrics
 
-Based on steps 1 to 3, state a clear recommendation: default, iterate, or roll back. Provide two to three sentences of reasoning. If the data is inconclusive, say that explicitly and state what additional data or runtime would be needed before a decision can be made.
+For business metrics relevant to this experiment, report control versus variant values, absolute difference, and relative percentage difference where supplied or computable. Include both per-user and aggregate measures when available and meaningful. Preserve units, currency, population, and time window.
 
-Do not hedge or soften the recommendation. If the data supports a clear call, make it.
+Revenue is an example, not a required primary metric. Attribute each figure to the table and metric role shown by the source. Do not automatically label revenue as the primary metric or duplicate the same result as independent evidence.
 
----
+Distinguish percentage-point changes from relative percentages. Do not compute relative change from a zero baseline. Do not compare aggregates as causal effects without accounting for allocation, exposure, and the platform's estimation method.
+
+### 5. Report estimated impact at the requested cadence
+
+If the platform provides estimated impact at full rollout, preserve that qualification. A projected impact does not mean the experiment has already been rolled out.
+
+When the source reports a daily estimate and a weekly presentation is appropriate:
+
+- Weekly incremental outcome = daily incremental outcome × 7.
+- Weekly incremental revenue = daily incremental revenue × 7, when revenue is relevant and available.
+- Scale both bounds of the corresponding interval by 7 as well.
+
+This is a unit conversion assuming the daily rate applies across the week, not a new forecast or evidence of significance. Preserve the source's population and rollout assumptions. Do not scale a cumulative total, percentage, per-user rate, or already-weekly value this way. Do not rescale traffic allocation unless the source method supports it.
+
+State the interval type and confidence level when provided. For a matching two-sided confidence interval for a difference, exclusion of zero supports significance at that interval's stated level; inclusion of zero does not. Do not apply this rule to an unlabeled interval, ratio interval, or a different statistical framework. Preserve platform adjustments and inconclusive labels. Flag discrepancies rather than overruling the platform from incomplete screenshots.
+
+If the estimate or uncertainty is missing, report it as unavailable; do not infer significance or fabricate impact.
+
+### 6. Summarize the experiment context
+
+From the scoping document, extract:
+
+- The problem and opportunity.
+- The solution tested, including UX, messaging, feature, or model changes as relevant.
+- The hypothesis.
+- The audience, eligibility, allocation, and requested segment cuts.
+
+Distinguish traffic allocation from the prevalence of the underlying user problem. Analyze specified segments only when data is available; mark unavailable cuts rather than inventing them.
+
+### 7. Determine the outcome and recommend an action
+
+Use the platform recommendation, primary result, guardrails, estimated impact, and project hypothesis together. Explicitly classify the result as **win**, **loss**, **neutral/inconclusive**, or **retest proposed/agreed**, explaining the basis and remaining uncertainty.
+
+- **Win:** Evidence supports the intended improvement and the configured guardrail decision criteria permit rollout. Recommend rollout only when justified; distinguish the recommendation from an approved commitment.
+- **Loss:** Evidence shows a material negative outcome or a breached guardrail. Explain the basis for recommending rollback or iteration.
+- **Neutral/inconclusive:** The intended effect is not established. A platform recommendation to confirm may coexist with inconclusive metrics; explain that combination without presenting it as proof of safety or benefit. A UX-based rollout requires an explicit rationale, guardrail review, and decision-owner alignment.
+- **Retest:** An inconclusive overall result may support a targeted follow-up when a segment signal has a plausible hypothesis. Label exploratory segment findings and account for multiple comparisons, sample size, and power limitations. A directional segment is not a proven win and does not guarantee a significant rerun. Distinguish a proposed retest from one the team has agreed to or launched.
+
+Take a position when evidence supports one. Otherwise state what additional evidence or decision is needed. Name unresolved trade-offs and their recorded decision owners.
+
+### 8. Produce all three outputs
+
+Use Draft: full mode. Produce the three sections below in a single response, in order. Drafting does not authorize posting to Slack or updating a shared document.
 
 ## Output format
 
-Produce three outputs in sequence. Label each one clearly. Do not combine them.
+### Section 1: XP Analysis
 
----
+Write one or two short paragraphs covering, in order:
 
-### Output 1: XP analysis (wiki format)
+1. Platform status, recommendation, and explanation.
+2. Primary metric result.
+3. Guardrail results and relevant secondary metric findings.
+4. Relevant per-user and aggregate business metrics, attributed to their actual roles.
+5. Estimated weekly impact, if available, with units, uncertainty, and significance.
+6. Recommended action, material surprises, and unresolved issues.
 
-Audience: team and stakeholders who need the full picture. Will be pasted into the project wiki page.
+Keep the narrative concise. Use a compact table only when needed to make several values or variants readable. Cite the supplied source for claims and label derived calculations.
 
-Structure:
-- Experiment overview: one short paragraph covering what was tested, why, and who was in the experiment
-- Data results: structured table with all metrics, variants, and significance
-- Performance summary: one to two paragraphs interpreting the results. What moved, what did not, and what that means
-- Recommendation: default, iterate, or roll back with reasoning
-- Next steps: two to three concrete actions following the decision
+### Section 2: High-Level Summary
 
-Tone: clear, analytical, no filler. Write for someone who will read this in six months and needs to understand what happened without asking anyone.
+Explain what was tested, why, the audience and allocation, key learning, and outcome for someone unfamiliar with the experiment. Separate observed results from recommendations and confirmed next actions.
 
----
+### Section 3: Slack Summary
 
-### Output 2: Stakeholder Slack summary (team channel)
+Draft a concise message for the supplied experiment-results audience. Use short sentences, sparing emoji, and a clear explanation of the user-facing change. Choose the relevant template and adapt it to the evidence and confirmed decision.
 
-Audience: your immediate team and cross-functional partners. Posted to the internal XP results channel.
+The brackets below are template fields. Use verified input values; if a required field is missing, ask or mark the draft as needing confirmation rather than inventing a value. Omit optional lines without data.
 
-Structure:
-- One line stating the experiment name and outcome
-- Two to three sentences on what was tested and why
-- Key metric highlights with directional indicators
-- Recommendation and next step
-- Link placeholder for wiki
+#### Win
 
-Tone: concise and direct. Use short sentences. Include relevant emojis for scannability. Match the register of a high-performing team's internal channel: not casual, not formal. No jargon that only engineers would understand.
+```text
+:rocket: Experiment win: [EXPERIMENT_NAME]
+[What improved for users and how it supports the hypothesis.]
 
-Length: aim for eight to twelve lines maximum. If it is longer, cut it.
+Key highlights:
+- [Primary metric: effect, uncertainty or significance]
+- [Guardrail findings]
+[Confirmed next action, or explicitly labeled recommendation]
+[Source link, if available]
+```
 
----
+#### Neutral / inconclusive
 
-### Output 3: Company-wide Slack update
+```text
+:bar_chart: [EXPERIMENT_NAME] — inconclusive
+We tested [change] to address [problem] for [audience].
 
-Audience: broader company. Posted to a general product or company updates channel. Many readers will have no context on this project.
+- Primary metric: [effect and status]
+- Guardrail metrics: [result and remaining uncertainty]
+- Estimated weekly impact: [estimate, units, interval, and significance, if available]
 
-Structure:
-- One sentence on what the experiment was and what it affects
-- One sentence on the result
-- One sentence on what happens next
+[Confirmed next action, or recommendation and decision still needed]
+[If rollout is agreed for UX reasons, state that rationale without claiming metrics proved no trade-offs.]
+[Source link, if available]
+```
 
-Tone: plain language. No metrics unless they are the headline story. No acronyms. Write for someone in finance or operations who cares about outcomes, not methods.
+#### Loss / rollback
 
-Length: three to five lines maximum.
+```text
+:warning: [EXPERIMENT_NAME] — [negative outcome]
+We tested [change] to address [problem].
+Results showed [supported negative finding].
 
----
+- Primary metric: [effect and status]
+- Guardrail metrics: [result]
+- Estimated weekly impact: [estimate and uncertainty, if available]
 
-## Sample outputs
+[Confirmed rollback / iteration action, or clearly labeled recommendation]
+[Source link, if available]
+```
 
-The samples below are based on a fictional experiment for Marketflow. Use these to calibrate tone, format, and level of detail for each output type.
+#### Retest / targeted follow-up
 
----
+```text
+[EXPERIMENT_NAME] — [retest proposed / agreed / relaunched, as confirmed]
+The overall result was inconclusive. [Segment] showed [directional result and significance status], which suggests a follow-up hypothesis rather than a confirmed win.
 
-**Sample experiment:** smart-ranking-v2
-A reranking experiment that used real-time behavioral signals to reorder search results for buyers on the Marketflow homepage feed.
+Hypothesis: [Why the effect might differ in this segment, labeled as inference where appropriate]
+Scope: [Confirmed or proposed audience and platforms; allocation only if known]
+Next: [Confirmed action or proposed validation plan]
+[Source link, if available]
+```
 
----
+Do not say a rerun is live, approved, or certain to reach significance unless the relevant fact is supported; future significance cannot be promised.
 
-**Sample output 1: XP analysis (wiki format)**
+## Style notes
 
-**Experiment overview**
-The smart-ranking-v2 experiment tested a new search ranking model that incorporates real-time click, dwell, and add-to-cart signals to reorder results dynamically. The experiment ran for three weeks across 50% of logged-in buyers on the homepage feed. The hypothesis was that behaviorally informed ranking would surface more relevant results, increasing click-through and downstream conversion.
-
-**Data results**
-
-Metrics below are as defined in the smart-ranking-v2 scoping doc: primary metrics (click-through rate, add-to-cart rate, conversions per user, revenue per user), guardrail metric (page load time), and counter-metric (checkout abandonment rate).
-
-| Metric | Type | Control | Variant | Change | Significant |
-|---|---|---|---|---|
-| Search click-through rate | Primary | 18.4% | 19.8% | +1.4% | Yes (95%) |
-| Add-to-cart rate | Primary | 9.1% | 9.6% | +0.5% | Yes (95%) |
-| Total conversions per user | Primary | 0.34 | 0.37 | +8.8% | Yes (99%) |
-| Revenue per user | Primary | $4.21 | $4.48 | +6.4% | Yes (95%) |
-| Checkout abandonment rate | Counter | 61% | 60.2% | -0.8% | No |
-| Page load time (search) | Guardrail | 2.8s | 3.1s | +0.3s | Yes (99%) |
-
-**Performance summary**
-The variant drove meaningful improvements across all primary conversion metrics. Click-through rate and add-to-cart both moved positively and reached significance, confirming the hypothesis that behaviorally ranked results surface more relevant items earlier in the feed. Revenue per user lift of 6.4% is material at current traffic volume.
-
-One guardrail metric requires attention before defaulting: page load time increased by 0.3 seconds and reached statistical significance. This exceeds the target threshold of under 2 seconds when combined with the current baseline. The frontend engineering lead should be consulted on whether this can be addressed before rollout.
-
-**Recommendation**
-Iterate before defaulting. The conversion and revenue results are strong and support defaulting this experience. However, the page load regression is a guardrail violation that needs to be resolved first. Recommend a two-week sprint to optimize the model serving latency, then re-evaluate for default.
-
-**Next steps**
-1. Frontend and ML engineering leads to assess load time regression and propose a fix
-2. Re-run load time benchmarks after optimization
-3. If load time returns to baseline, proceed with default and company-wide announcement
-
----
-
-**Sample output 2: Stakeholder Slack summary**
-
-:bar_chart: smart-ranking-v2 XP update: strong results, one guardrail to resolve before defaulting
-
-We tested a new ranking model that uses real-time behavioral signals (clicks, dwell time, add-to-cart) to reorder homepage search results. The goal was to surface more relevant items earlier and drive conversion.
-
-Key results:
-:chart_with_upwards_trend: Conversions per user: +8.8%
-:moneybag: Revenue per user: +6.4%
-:three_button_mouse: Search click-through rate: +1.4%
-:warning: Page load time: +0.3s (guardrail exceeded)
-
-The conversion and revenue results are strong. We are not defaulting yet because page load time regressed beyond our threshold. Engineering is scoping a fix now. If resolved in the next two weeks, we will proceed with the default.
-
-Wiki link: [insert link]
-
----
-
-**Sample output 3: Company-wide Slack update**
-
-Our new search ranking model, which personalizes results based on how buyers interact with the feed, showed an 8.8% increase in purchases per user in testing. We are making a small performance improvement before rolling it out to everyone. Expected rollout in two to three weeks.
-
----
-
-## Notes for adapting this skill
-
-- The three output formats are fixed. Do not combine them or skip one because it feels redundant. Each serves a different audience with different context and needs.
-- Sample outputs are illustrative only. Tone and format should be consistent but content will vary by experiment.
-- If statistical significance data is missing from the input, state that clearly in the analysis. Do not estimate or infer significance.
-- If a guardrail metric moves negatively, always flag it even if the primary metrics are positive. Do not bury it.
-
+- State the outcome and recommended or agreed action explicitly.
+- Use plain language and explain necessary statistical terms.
+- Preserve exact experiment identifiers only from supplied inputs; never include a private worked example in this public template.
+- Ground every number and link in the inputs. Label estimates and calculations.
+- Never convert inconclusive evidence into a claim of no harm or benefit.
+- Use [Slack writeups](slack-writeups.md) for launch and live-status messages that are not concluded experiment readouts.

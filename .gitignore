@@ -1,0 +1,13 @@
+# Local operating-system files
+.DS_Store
+Thumbs.db
+
+# Local credentials and environment files
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Ignoring files does not protect edits to tracked templates.
+# Personalize and store company context in a private copy.
